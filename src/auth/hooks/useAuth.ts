@@ -6,6 +6,7 @@ import { AccAddress, SignDoc } from "@terra-money/terra.js"
 import { MnemonicKey, RawKey, SignatureV2 } from "@terra-money/terra.js"
 import { LedgerKey } from "@terra-money/ledger-terra-js"
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble"
+import { LatticeKey } from "lattice-terra-js"
 import { LEDGER_TRANSPORT_TIMEOUT } from "config/constants"
 import { useChainID } from "data/wallet"
 import { useLCDClient } from "data/queries/lcdClient"
@@ -65,6 +66,15 @@ const useAuth = () => {
     [setWallet]
   )
 
+  const connectLattice = useCallback(
+    (address: AccAddress, index, deviceId, token) => {
+      const wallet = { address, lattice: true as const, deviceId, token, index }
+      storeWallet(wallet)
+      setWallet(wallet)
+    },
+    [setWallet]
+  )
+
   /* connected */
   const connectedWallet = useMemo(() => {
     if (!is.local(wallet)) return
@@ -102,6 +112,21 @@ const useAuth = () => {
       : undefined
 
     return LedgerKey.create(transport, index)
+  }
+
+  const getLatticeKey = async () => {
+    if (!is.lattice(wallet)) throw new Error("Lattice device is not connected")
+    const { token, deviceId } = wallet
+    const LK = new LatticeKey({
+      token: Buffer.from(token, "hex"),
+      index: wallet.index,
+    })
+    const isPaired = await LK.connect(deviceId)
+    if (isPaired) {
+      return LK
+    } else {
+      throw new Error("Lattice must be re-connected.")
+    }
   }
 
   /* manage: export */
@@ -151,6 +176,9 @@ const useAuth = () => {
     if (is.ledger(wallet)) {
       const key = await getLedgerKey()
       return await key.createSignatureAmino(doc)
+    } else if (is.lattice(wallet)) {
+      const key = await getLatticeKey()
+      return await key.createSignatureAmino(doc)
     } else {
       const pk = getKey(password)
       if (!pk) throw new PasswordError("Incorrect password")
@@ -164,6 +192,15 @@ const useAuth = () => {
 
     if (is.ledger(wallet)) {
       const key = await getLedgerKey()
+      const wallet = lcd.wallet(key)
+      const { account_number: accountNumber, sequence } =
+        await wallet.accountNumberAndSequence()
+      const signMode = SignatureV2.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
+      const unsignedTx = await create(txOptions)
+      const options = { chainID, accountNumber, sequence, signMode }
+      return await key.signTx(unsignedTx, options)
+    } else if (is.lattice(wallet)) {
+      const key = await getLatticeKey()
       const wallet = lcd.wallet(key)
       const { account_number: accountNumber, sequence } =
         await wallet.accountNumberAndSequence()
@@ -218,6 +255,7 @@ const useAuth = () => {
     connect,
     connectPreconfigured,
     connectLedger,
+    connectLattice,
     disconnect,
     lock,
     available,

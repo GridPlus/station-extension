@@ -1,6 +1,12 @@
 type Bip = 118 | 330
 
-type Wallet = SingleWallet | PreconfiguredWallet | MultisigWallet | LedgerWallet
+type Wallet =
+  | SingleWallet
+  | PreconfiguredWallet
+  | MultisigWallet
+  | LedgerWallet
+  | LatticeWallet
+
 type LocalWallet = SingleWallet | MultisigWallet // wallet with name
 
 interface SingleWallet {
@@ -22,6 +28,14 @@ interface LedgerWallet {
   ledger: true
   index: number
   bluetooth: boolean
+}
+
+interface LatticeWallet {
+  address: string
+  lattice: true
+  deviceId: string
+  index: number
+  token: string
 }
 
 interface StoredWallet extends SingleWallet {

@@ -1,6 +1,7 @@
 import { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import UsbIcon from "@mui/icons-material/Usb"
+import WifiFindIcon from "@mui/icons-material/WifiFind"
 import { ConnectType, useWallet } from "@terra-money/wallet-provider"
 import { STATION } from "config/constants"
 import { useAddress } from "data/wallet"
@@ -44,6 +45,11 @@ const ConnectWallet = ({ renderButton }: Props) => {
       icon: <UsbIcon />,
       to: "/auth/ledger",
       children: t("Access with ledger"),
+    },
+    {
+      icon: <WifiFindIcon />,
+      to: "/auth/lattice",
+      children: t("Access with Lattice"),
     },
     ...availableInstallTypes
       .filter((type) => type === ConnectType.EXTENSION)

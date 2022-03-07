@@ -67,11 +67,15 @@ export const useManageWallet = () => {
 
   if (!wallet) return
 
-  return is.multisig(wallet)
-    ? [toPostMultisig, toDelete, disconnectWallet]
-    : is.ledger(wallet)
-    ? [toSignMultisig, disconnectWallet]
-    : [toExport, toPassword, toDelete, toSignMultisig, lockWallet]
+  if (is.multisig(wallet)) {
+    return [toPostMultisig, toDelete, disconnectWallet]
+  } else if (is.ledger(wallet)) {
+    return [toSignMultisig, disconnectWallet]
+  } else if (is.lattice(wallet)) {
+    return [disconnectWallet]
+  } else {
+    return [toExport, toPassword, toDelete, toSignMultisig, lockWallet]
+  }
 }
 
 const ManageWallets = () => {

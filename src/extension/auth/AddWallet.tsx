@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import UsbIcon from "@mui/icons-material/Usb"
+import WifiFindIcon from "@mui/icons-material/WifiFind"
 import useAvailable from "auth/hooks/useAvailable"
 import { getOpenURL } from "../storage"
 import ExtensionList from "../components/ExtensionList"
@@ -16,6 +17,11 @@ const AddWallet = () => {
           icon: <UsbIcon />,
           to: "/auth/ledger",
           children: t("Access with ledger"),
+        },
+        {
+          icon: <WifiFindIcon />,
+          to: "/auth/lattice",
+          children: t("Access with Lattice"),
         },
       ].map(({ to, ...item }) => {
         const openURL = getOpenURL(to)
